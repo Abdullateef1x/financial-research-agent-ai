@@ -26,22 +26,23 @@ def run_research_agent(company_name: str) -> dict:
     print(f"[Agent] Searching risks for {company_name}...")
     risk_results = search_company_risks(company_name)
 
-    # ── Step 2: Scrape top URLs for deeper content ───────────
+    # ── Step 2: Scrape only 1 URL ───────────
     scraped_content = []
-    for result in (financial_results + news_results)[:3]:
+    for result in (financial_results)[:1]:
         url = result.get("url", "")
-        if url:
+        if url and not url.endswith(".pdf"): # Skip PDFs for now
             print(f"[Agent] Scraping {url}...")
-            content = scrape_url(url)
+            content = scrape_url(url, max_chars=1000)  # Limit to 5000 chars
             scraped_content.append(f"Source: {url}\n{content}")
 
     # ── Step 3: Build context for LLM ───────────────────────
+    top_results = (financial_results + news_results + risk_results)[:4]  #  limit results
     search_context = "\n\n".join([
-        f"Title: {r.get('title', '')}\nURL: {r.get('url', '')}\nContent: {r.get('content', '')}"
-        for r in financial_results + news_results + risk_results
+    f"Title: {r.get('title', '')}\nContent: {r.get('content', '')[:300]}"  # ✅ 300 chars per result
+    for r in top_results
     ])
 
-    scraped_context = "\n\n---\n\n".join(scraped_content)
+    scraped_context = "\n\n".join(scraped_content) if scraped_content else "No scraped content."
 
     # ── Step 4: LLM generates structured investment brief ────
     print(f"[Agent] Generating investment brief for {company_name}...")
@@ -93,7 +94,7 @@ Generate a comprehensive investment brief based on this data."""
         ],
         response_format={"type": "json_object"},
         temperature=0.0,
-        max_tokens=2000,
+        max_tokens=8000,
     )
 
     raw = completion.choices[0].message.content

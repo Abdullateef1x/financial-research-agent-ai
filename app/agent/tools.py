@@ -41,7 +41,7 @@ def search_company_risks(company_name: str) -> list[dict]:
     return results.get("results", [])
 
 
-def scrape_url(url: str, max_chars: int = 3000) -> str:
+def scrape_url(url: str, max_chars: int =1500) -> str:
     try:
         headers = {"User-Agent": "Mozilla/5.0"}
         response = httpx.get(url, headers=headers, timeout=10, follow_redirects=True)
