@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import httpx
 from bs4 import BeautifulSoup
@@ -8,15 +9,25 @@ def get_tavily_client():
     return TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
 
-def search_company(company_name: str) -> list[dict]:
+def search_company(company_name: str) -> dict:
     client = get_tavily_client()
+
+    current_year = datetime.now().year
+    years = " ".join(
+        f"FY{year}" for year in range(current_year - 2, current_year + 1)
+    )
+
     results = client.search(
-        query=f"{company_name} financial overview revenue profit 2024 2025",
+        query=(
+            f"{company_name} latest annual report {years} "
+            "revenue net income operating income "
+            "official investor relations"
+        ),
         search_depth="advanced",
         max_results=5,
         include_answer=True,
     )
-    return results.get("results", [])
+    return results
 
 
 def search_company_news(company_name: str) -> list[dict]:
@@ -45,6 +56,8 @@ def scrape_url(url: str, max_chars: int =1500) -> str:
     try:
         headers = {"User-Agent": "Mozilla/5.0"}
         response = httpx.get(url, headers=headers, timeout=10, follow_redirects=True)
+        response.raise_for_status()
+
         soup = BeautifulSoup(response.text, "html.parser")
 
         # Remove scripts and styles
