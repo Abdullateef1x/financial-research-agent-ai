@@ -12,5 +12,5 @@ class ResearchReport(SQLModel, table=True):
     recommendation: Optional[str] = None   # Buy / Hold / Sell
     confidence: Optional[float] = None
     summary: Optional[str] = None
-    report_pdf_url: str
+    report_pdf_url: str  # Stores the R2 object key, not a public URL.
     created_at: datetime = Field(default_factory=datetime.utcnow)

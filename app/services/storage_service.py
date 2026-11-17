@@ -1,6 +1,7 @@
 import os
 import boto3
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 def get_r2_client():
@@ -16,6 +17,7 @@ def get_r2_client():
 def upload_report_to_r2(report_path: str) -> str:
     client = get_r2_client()
     bucket = os.getenv("R2_BUCKET_NAME")
+
     file_name = Path(report_path).name
     object_key = f"research/{file_name}"
 
@@ -26,5 +28,21 @@ def upload_report_to_r2(report_path: str) -> str:
         ExtraArgs={"ContentType": "application/pdf"},
     )
 
-    public_url = os.getenv("R2_PUBLIC_URL")
-    return f"{public_url}/{object_key}"
+    return object_key
+
+
+def generate_report_download_url(object_key: str) -> str:
+    client = get_r2_client()
+    bucket = os.getenv("R2_BUCKET_NAME")
+
+    if object_key.startswith(("http://", "https://")):
+        object_key = urlparse(object_key).path.lstrip("/")
+
+    return client.generate_presigned_url(
+        "get_object",
+        Params={
+            "Bucket": bucket,
+            "Key": object_key,
+        },
+        ExpiresIn=3600,
+    )

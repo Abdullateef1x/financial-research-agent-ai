@@ -6,6 +6,8 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
     HRFlowable,
     Paragraph,
@@ -30,6 +32,14 @@ IMPACT_COLORS = {
     "neutral": colors.HexColor("#7f8c8d"),
 }
 
+pdfmetrics.registerFont(
+    TTFont("DejaVuSans", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
+)
+
+pdfmetrics.registerFont(
+    TTFont("DejaVuSans-Bold", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+)
+
 
 def generate_research_report(brief: dict) -> str:
     report_id = str(uuid.uuid4())[:8].upper()
@@ -47,11 +57,39 @@ def generate_research_report(brief: dict) -> str:
     )
 
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle("title", parent=styles["Title"], fontSize=20, spaceAfter=4)
-    heading = ParagraphStyle("heading", parent=styles["Heading2"], fontSize=12, spaceAfter=6)
-    body = ParagraphStyle("body", parent=styles["Normal"], fontSize=10, leading=14, spaceAfter=4)
-    small = ParagraphStyle("small", parent=styles["Normal"], fontSize=8, leading=12,
-                           textColor=colors.HexColor("#666666"))
+    title_style = ParagraphStyle(
+        "title",
+        parent=styles["Title"],
+        fontName="DejaVuSans-Bold",
+        fontSize=20,
+        spaceAfter=4,
+    )
+
+    heading = ParagraphStyle(
+        "heading",
+        parent=styles["Heading2"],
+        fontName="DejaVuSans-Bold",
+        fontSize=12,
+        spaceAfter=6,
+    )
+
+    body = ParagraphStyle(
+        "body",
+        parent=styles["Normal"],
+        fontName="DejaVuSans",
+        fontSize=10,
+        leading=14,
+        spaceAfter=4,
+    )
+
+    small = ParagraphStyle(
+        "small",
+        parent=styles["Normal"],
+        fontName="DejaVuSans",
+        fontSize=8,
+        leading=12,
+        textColor=colors.HexColor("#666666"),
+    )
 
     story = []
     recommendation = (brief.get("recommendation") or "hold").lower()
@@ -118,8 +156,8 @@ def generate_research_report(brief: dict) -> str:
     fin_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTNAME", (0, 1), (0, -1), "Helvetica-Bold"),
+        ("FONTNAME", (0, 0), (-1, 0), "DejaVuSans-Bold"),
+        ("FONTNAME", (0, 1), (0, -1), "DejaVuSans-Bold"),
         ("FONTSIZE", (0, 0), (-1, -1), 9),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f5f5f5")]),
         ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#dddddd")),
@@ -133,12 +171,12 @@ def generate_research_report(brief: dict) -> str:
     # ── Strengths & Risks ────────────────────────────────────
     story.append(Paragraph("Strengths", heading))
     for s in (brief.get("strengths") or []):
-        story.append(Paragraph(f"• {s}", body))
+        story.append(Paragraph(f"&bull; {s}", body))
     story.append(Spacer(1, 10))
 
     story.append(Paragraph("Risks", heading))
     for r in (brief.get("risks") or []):
-        story.append(Paragraph(f"• {r}", body))
+        story.append(Paragraph(f"&bull; {r}", body))
     story.append(Spacer(1, 10))
 
     # ── Recent News ──────────────────────────────────────────
@@ -148,14 +186,14 @@ def generate_research_report(brief: dict) -> str:
         news_data = [["Headline", "Impact"]]
         for item in news_items:
             news_data.append([
-                item.get("headline", ""),
-                item.get("impact", "neutral").upper(),
+                Paragraph(item.get("headline", ""), body),
+                Paragraph(item.get("impact", "neutral").upper(), body),
             ])
-        news_table = Table(news_data, colWidths=[5.5 * inch, 1 * inch])
+        news_table = Table(news_data, colWidths=[5.2 * inch, 1.3 * inch])
         news_table.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
             ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTNAME", (0, 0), (-1, 0), "DejaVuSans-Bold"),
             ("FONTSIZE", (0, 0), (-1, -1), 9),
             ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f5f5f5")]),
             ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#dddddd")),
@@ -168,7 +206,7 @@ def generate_research_report(brief: dict) -> str:
                 for i in range(len(news_items))
             ],
             *[
-                ("FONTNAME", (1, i + 1), (1, i + 1), "Helvetica-Bold")
+                ("FONTNAME", (1, i + 1), (1, i + 1), "DejaVuSans-Bold")
                 for i in range(len(news_items))
             ],
         ]))
