@@ -7,7 +7,9 @@ from app.agent.tools import (
     search_company_risks,
     scrape_url,
 )
+import logging
 
+logger = logging.getLogger(__name__)
 
 def get_groq_client():
     return Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -17,16 +19,16 @@ def run_research_agent(company_name: str) -> dict:
     client = get_groq_client()
 
     # ── Step 1: Gather raw data from all three searches ──────
-    print(f"[Agent] Searching financial overview for {company_name}...")
+    logger.info("Searching financial overview for %s", company_name)
 
     financial_response = search_company(company_name)
     financial_results = financial_response.get("results", [])
     financial_answer = financial_response.get("answer", "")
 
-    print(f"[Agent] Searching news for {company_name}...")
+    logger.info("Searching news for %s", company_name)
     news_results = search_company_news(company_name)
 
-    print(f"[Agent] Searching risks for {company_name}...")
+    logger.info("Searching risks for %s", company_name)
     risk_results = search_company_risks(company_name)
 
     # ── Step 2: Scrape only 1 URL ───────────
@@ -34,11 +36,11 @@ def run_research_agent(company_name: str) -> dict:
     for result in (financial_results)[:1]:
         url = result.get("url", "")
         if url and not url.endswith(".pdf"): # Skip PDFs for now
-            print(f"[Agent] Scraping {url}...")
+            logger.info("Scraping %s", url)
             content = scrape_url(url, max_chars=2000)
 
             if content.startswith("Could not scrape"):
-                print("[Agent] Direct scraping unavailable; using Tavily search content.")
+                logger.warning("Direct scraping unavailable; using Tavily search content.")
                 continue
 
             scraped_content.append(f"Source: {url}\n{content}")
@@ -60,7 +62,7 @@ def run_research_agent(company_name: str) -> dict:
     scraped_context = "\n\n".join(scraped_content) if scraped_content else "No scraped content."
 
     # ── Step 4: LLM generates structured investment brief ────
-    print(f"[Agent] Generating investment brief for {company_name}...")
+    logger.info("Generating investment brief for %s", company_name)
     completion = client.chat.completions.create(
         model="openai/gpt-oss-120b",
         messages=[
