@@ -1,94 +1,95 @@
 # 🤖 Financial Research Agent AI
 
-An AI-powered financial research agent that autonomously searches the web, scrapes financial data, and generates structured investment briefs using LLM reasoning and agentic tool use.
+An AI-powered financial research backend that gathers company information from web sources, analyzes financial data and business developments, and generates structured research briefs using LLM reasoning and tool orchestration.
 
-Built as a production-ready AI agent system demonstrating autonomous web research, multi-step reasoning, and structured report generation.
-
----
+Built with FastAPI, Tavily, Groq, and Cloudflare R2, the application demonstrates multi-step AI research, web content extraction, structured report generation, and cloud-based document storage.
 
 ## ⚡ What This System Does
 
-- 🔍 Takes a company name as input
-- 🌐 Autonomously searches the web for financial data, news, and risks (Tavily)
-- 📰 Scrapes top financial sources for deeper content
-- 🧠 Reasons over gathered data using LLM (Groq LLaMA 3.3 70B)
-- 📊 Generates a structured investment brief (Buy / Hold / Sell)
-- 📄 Produces a formatted PDF research report (ReportLab)
-- ☁️ Uploads report to Cloudflare R2
-- 🗄️ Saves metadata to Supabase
-
----
+- 🔍 Accepts a company name as input.
+- 🌐 Searches the web for company information, financial data, news, and risks using Tavily.
+- 📰 Extracts relevant content from selected web sources using BeautifulSoup and httpx.
+- 🧠 Analyzes gathered information using Groq (LLaMA 3.3 70B).
+- 📊 Generates a structured company research brief.
+- 📄 Produces a formatted PDF research report using ReportLab.
+- ☁️ Uploads generated reports to private Cloudflare R2 storage.
+- 🗄️ Persists research metadata in Supabase PostgreSQL.
+- 📥 Generates temporary download URLs for stored reports.
 
 ## 🧠 Agent Architecture
 
-```
+```text
 User Input: Company Name
         ↓
-Tavily Web Search (Financial Overview)
+Tavily Web Search
         ↓
-Tavily Web Search (Latest News)
+Financial Overview Research
         ↓
-Tavily Web Search (Risks & Challenges)
+Latest News Research
         ↓
-BeautifulSoup Scraping (Top URLs)
+Risks & Challenges Research
         ↓
-LLM Reasoning — Groq LLaMA 3.3 70B
+Web Content Extraction
+(BeautifulSoup + httpx)
         ↓
-Structured Investment Brief (JSON)
+LLM Analysis
+(Groq LLaMA 3.3 70B)
         ↓
-PDF Report Generation (ReportLab)
+Structured Research Brief
         ↓
-Cloud Storage (Cloudflare R2 + Supabase)
+PDF Report Generation
+(ReportLab)
         ↓
-JSON API Response (Report URL + Insights)
+Cloud Storage
+(Cloudflare R2)
+        ↓
+Metadata Persistence
+(Supabase PostgreSQL)
+        ↓
+JSON API Response
+(Research Insights + Download URL)
 ```
-
----
 
 ## 🧰 Tech Stack
 
 | Layer | Technology |
 |---|---|
 | Backend API | FastAPI |
-| LLM Engine | Groq (LLaMA 3.3 70B) |
+| LLM | Groq (LLaMA 3.3 70B) |
 | Web Search | Tavily API |
 | Web Scraping | BeautifulSoup + httpx |
 | Report Generation | ReportLab |
-| File Storage | Cloudflare R2 |
-| Database | Supabase (PostgreSQL) + SQLModel |
+| Object Storage | Cloudflare R2 |
+| Database | Supabase PostgreSQL + SQLModel |
 | Containerization | Docker |
 | Deployment | Render |
 | Dependency Management | Poetry |
 
----
-
 ## 🏗️ Project Structure
 
-```
+```text
 financial-research-agent/
 ├── app/
-│   ├── main.py                    # App entry point, route registration, CORS
+│   ├── main.py
 │   ├── api/
 │   │   └── routes/
-│   │       └── research.py        # /research, /reports endpoints
+│   │       └── research.py
 │   ├── agent/
-│   │   ├── researcher.py          # Core agent loop — search, scrape, reason
-│   │   └── tools.py               # Tavily search + BeautifulSoup scraping tools
+│   │   ├── researcher.py
+│   │   └── tools.py
 │   ├── services/
-│   │   ├── report_service.py      # ReportLab PDF investment brief generation
-│   │   └── storage_service.py     # Cloudflare R2 upload
+│   │   ├── report_service.py
+│   │   └── storage_service.py
 │   ├── db/
-│   │   └── database.py            # SQLModel engine + session
+│   │   └── database.py
 │   └── models/
-│       └── research.py            # ResearchReport SQLModel table
+│       └── research.py
 ├── Dockerfile
 ├── .dockerignore
 ├── .env.example
 ├── pyproject.toml
 └── poetry.lock
 ```
-
----
 
 ## 🚀 Getting Started
 
@@ -98,13 +99,13 @@ financial-research-agent/
 - Poetry
 - [Groq](https://console.groq.com) API key
 - [Tavily](https://tavily.com) API key
-- [Supabase](https://supabase.com) project
-- [Cloudflare R2](https://cloudflare.com) bucket
+- [Supabase](https://supabase.com) PostgreSQL project
+- [Cloudflare R2](https://developers.cloudflare.com/r2/) bucket
 
-### 1. Clone the repo
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/financial-research-agent.git
+git clone https://github.com/Abdullateef1x/financial-research-agent-ai
 cd financial-research-agent
 ```
 
@@ -116,22 +117,27 @@ poetry install
 
 ### 3. Configure environment variables
 
+Create your local environment file:
+
 ```bash
 cp .env.example .env
 ```
 
-Fill in your `.env`:
+Configure the required variables:
 
-```bash
+```env
 GROQ_API_KEY=your_groq_api_key
 TAVILY_API_KEY=your_tavily_api_key
-DATABASE_URL=postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
-R2_ACCOUNT_ID=your_account_id
-R2_ACCESS_KEY_ID=your_access_key_id
-R2_SECRET_ACCESS_KEY=your_secret_access_key
+
+DATABASE_URL=your_supabase_postgresql_connection_string
+
+R2_ACCOUNT_ID=your_cloudflare_account_id
+R2_ACCESS_KEY_ID=your_r2_access_key
+R2_SECRET_ACCESS_KEY=your_r2_secret_access_key
 R2_BUCKET_NAME=your_bucket_name
-R2_PUBLIC_URL=https://<ACCOUNT_ID>.r2.cloudflarestorage.com/your_bucket
 ```
+
+Keep `.env` private. Never commit API keys, database credentials, or storage secrets to Git.
 
 ### 4. Run locally
 
@@ -139,18 +145,26 @@ R2_PUBLIC_URL=https://<ACCOUNT_ID>.r2.cloudflarestorage.com/your_bucket
 poetry run uvicorn app.main:app --reload
 ```
 
+The API will be available at:
+
+```text
+http://127.0.0.1:8000
+```
+
 ### 5. Run with Docker
 
 ```bash
-docker compose up --build
+docker build -t financial-research-agent .
+docker run -p 8000:8000 financial-research-agent
 ```
 
----
+Configure the required environment variables when running the container.
 
 ## 📡 API Endpoints
 
 ### `POST /research`
-Run the full research agent pipeline for a company. Returns structured investment brief and PDF report URL.
+
+Runs the research workflow for a supplied company name.
 
 ```bash
 curl -X POST http://localhost:8000/research \
@@ -158,132 +172,121 @@ curl -X POST http://localhost:8000/research \
   -d '{"company_name": "Apple Inc"}'
 ```
 
-**Response:**
+Example response:
+
 ```json
 {
   "report_id": "3EB75B71",
   "company": "Apple Inc",
   "ticker": "AAPL",
   "sector": "Technology",
-  "recommendation": "Buy",
+  "recommendation": "Hold",
   "confidence": 0.8,
-  "summary": "Apple Inc is a technology company...",
-  "report_url": "https://your-bucket.r2.cloudflarestorage.com/research/research_3EB75B71_Apple_Inc.pdf",
-  "created_at": "2026-06-04T21:33:46.265470"
+  "summary": "Company research summary...",
+  "report_url": "<temporary-presigned-download-url>",
+  "created_at": "2026-11-18T10:30:00"
 }
 ```
 
----
+The response fields above illustrate the API structure; actual research results depend on the retrieved sources and model output.
 
 ### `GET /reports`
-List all previously generated research reports.
+
+Retrieves previously generated research reports.
 
 ```bash
 curl http://localhost:8000/reports
 ```
 
-**Response:**
-```json
-{
-  "total": 5,
-  "reports": [
-    {
-      "report_id": "3EB75B71",
-      "company": "Apple Inc",
-      "ticker": "AAPL",
-      "sector": "Technology",
-      "recommendation": "Buy",
-      "confidence": 0.8,
-      "created_at": "2026-06-04T21:33:46.265470",
-      "report_url": "https://..."
-    }
-  ]
-}
-```
-
----
+Returns report metadata and freshly generated download URLs.
 
 ### `GET /health`
-Health check.
+
+Checks API health.
 
 ```bash
 curl http://localhost:8000/health
-# {"status": "ok"}
 ```
 
----
+## 📦 Report Storage
 
-## 📊 Investment Brief Report
+Generated PDF reports are stored in private Cloudflare R2 object storage.
 
-Each generated PDF report contains:
+The application stores R2 object keys in the database rather than relying on expiring download URLs.
+
+When a report is requested:
+
+1. The API retrieves the report's stored object key.
+2. The storage service generates a fresh presigned download URL.
+3. The API returns the URL to the client.
+
+Presigned download URLs expire after **one hour**.
+
+This allows reports to remain stored independently of individual download links.
+
+## 📊 Research Brief Contents
+
+Each generated PDF research report can include:
 
 | Section | Details |
 |---|---|
-| Recommendation Banner | Buy / Hold / Sell with confidence score |
-| Business Overview | Company description and revenue drivers |
-| Key Financials | Revenue, net income, market cap, P/E ratio, growth |
-| Strengths | Key competitive advantages |
-| Risks | Major risk factors |
-| Recent News | Headlines with positive / negative / neutral impact |
-| Competitive Position | Market position analysis |
-| Recommendation Rationale | LLM reasoning behind the recommendation |
-| Data Sources | Sources used for the analysis |
+| Business Overview | Company description and business activities |
+| Key Financials | Revenue, net income, market capitalization, P/E ratio, and growth where available |
+| Strengths | Identified competitive advantages |
+| Risks | Potential business and financial risks |
+| Recent News | Relevant headlines and their assessed impact |
+| Competitive Position | Company positioning and market context |
+| Research Assessment | LLM-generated analysis and recommendation rationale |
+| Data Sources | Sources used during research |
 
----
+Financial information depends on the availability and reliability of retrieved sources. Missing or unavailable figures should not be interpreted as zero.
 
-## 🧪 Example Companies to Research
+## 🧪 Example Research Requests
 
-```bash
-# Large cap tech
-{"company_name": "Apple Inc"}
-{"company_name": "Microsoft"}
-{"company_name": "NVIDIA"}
+The API accepts company names as input. Example research targets include:
 
-# Nigerian/African companies
-{"company_name": "Dangote Cement"}
-{"company_name": "MTN Nigeria"}
-{"company_name": "Flutterwave"}
+**Technology**
+- Apple
+- Microsoft
+- NVIDIA
 
-# Finance
-{"company_name": "JPMorgan Chase"}
-{"company_name": "Goldman Sachs"}
-```
+**Nigerian and African businesses**
+- Dangote Cement
+- MTN Nigeria
+- Flutterwave
 
----
+**Financial Services**
+- JPMorgan Chase
+- Goldman Sachs
+
+These are examples of research inputs, not endorsements or investment recommendations.
 
 ## 🧠 Skills Demonstrated
 
-- Agentic AI system design
-- LLM tool use and orchestration (Groq / LLaMA 3.3 70B)
-- Autonomous web research (Tavily)
-- Web scraping and content extraction (BeautifulSoup)
-- Structured LLM outputs with JSON mode
+- Agentic AI application development
+- LLM integration and orchestration
+- Multi-step research workflows
+- Web search integration using Tavily
+- Web content extraction using BeautifulSoup and httpx
+- Structured LLM outputs
 - FastAPI backend engineering
-- PDF report generation (ReportLab)
-- Cloud storage integration (Cloudflare R2)
-- Relational database persistence (Supabase + SQLModel)
-- Containerization (Docker)
-- Production deployment (Render)
+- PDF report generation
+- Cloud object storage integration
+- Relational database persistence
+- Logging and application observability
+- Docker-based application packaging
 
----
+## ⚠️ Research Limitations and Disclaimer
 
-## 🌍 Why This Project Matters
+This application generates AI-assisted company research based on information retrieved from external sources.
 
-Demonstrates production-level agentic AI engineering skills relevant to:
+- Retrieved information may be incomplete, outdated, or inaccurate.
+- Web scraping depends on source availability and website structure.
+- LLM-generated analysis may contain errors or unsupported conclusions.
+- Financial metrics should be independently verified against reliable financial disclosures.
 
-- AI Engineer roles
-- LLM Application Engineer positions
-- Backend Engineer (AI Systems)
-- AI Full-Stack Engineer positions
-
----
-
-## ⚠️ Disclaimer
-
-Reports generated by this system are for informational purposes only and do not constitute financial advice. Always conduct your own due diligence before making investment decisions.
-
----
+Reports are for informational and educational purposes only. They are not financial advice or a substitute for independent research and professional judgment.
 
 ## 📄 License
 
-MIT
+[Add your chosen license here.]
